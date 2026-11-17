@@ -48,7 +48,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/web
+          images: ghcr.io/${{ github.repository }}/web
 
       - name: Build and push by digest
         id: build
@@ -57,7 +57,7 @@ jobs:
           context: ./ente-source/
           file: ./ente-source/web/Dockerfile
           platforms: linux/${{ matrix.arch }}
-          outputs: type=image,"name=ghcr.io/${{ github.repository_owner }}/web",push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,"name=ghcr.io/${{ github.repository }}/web",push-by-digest=true,name-canonical=true,push=true
           build-args: |
             GIT_COMMIT=${{ github.sha }}
 
@@ -100,7 +100,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/web
+          images: ghcr.io/${{ github.repository }}/web
           tags: |
             type=raw,value=${{ github.sha }}
             type=raw,value=latest
@@ -109,8 +109,8 @@ jobs:
         working-directory: /tmp/digests
         run: |
           docker buildx imagetools create $(jq -r '.tags | map("-t " + .) | join(" ")' <<< '${{ steps.meta.outputs.json }}') \
-            $(ls * | plugin_args=(); for digest in *; do plugin_args+=("ghcr.io/${{ github.repository_owner }}/web@sha256:${digest}"); done; echo "${plugin_args[@]}")
+            $(ls * | plugin_args=(); for digest in *; do plugin_args+=("ghcr.io/${{ github.repository }}/web@sha256:${digest}"); done; echo "${plugin_args[@]}")
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ghcr.io/${{ github.repository_owner }}/web:latest
+          docker buildx imagetools inspect ghcr.io/${{ github.repository }}/web:latest
