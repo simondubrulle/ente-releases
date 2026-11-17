@@ -1,0 +1,29 @@
+name: Keep All Workflows Alive
+
+on:
+  schedule:
+    - cron: '0 0 1 * *' # Runs on the 1st of every month
+  workflow_dispatch:
+
+permissions:
+  actions: write
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable all workflows automatically
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Discovering all workflows for ${{ github.repository }}..."
+          
+          # Fetch all workflow IDs and loop through them using gh api
+          gh api repos/${{ github.repository }}/actions/workflows --jq '.workflows[].id' | while read -r id; do
+            if [ -n "$id" ] && [ "$id" != "null" ]; then
+              echo "Enabling workflow ID: $id"
+              gh api -X PUT "repos/${{ github.repository }}/actions/workflows/$id/enable"
+            fi
+          done
+          
+          echo "All workflows successfully refreshed!"
